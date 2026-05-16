@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Piano Scale Practice Lottery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1714;
+    --paper: #f5f0e8;
+    --cream: #ede6d6;
+    --gold: #b8860b;
+    --gold-light: #d4a017;
+    --rust: #8b3a2a;
+    --muted: #7a7060;
+    --border: rgba(26,23,20,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Sheet music lines background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 38px,
+      rgba(180,160,120,0.18) 38px,
+      rgba(180,160,120,0.18) 39px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 4rem;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .treble-clef {
+    font-size: 64px;
+    line-height: 1;
+    display: block;
+    margin-bottom: 0.25rem;
+    filter: opacity(0.85);
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  header .subtitle {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* Draw buttons */
+  .draw-section {
+    margin-bottom: 2rem;
+  }
+
+  .draw-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .btn-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .draw-btn {
+    position: relative;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 3px;
+    padding: 14px 8px;
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s;
+    overflow: hidden;
+  }
+
+  .draw-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .draw-btn:hover { transform: translateY(-2px); }
+  .draw-btn:hover::after { opacity: 1; }
+  .draw-btn:active { transform: translateY(0) scale(0.97); }
+
+  .draw-btn span {
+    position: relative;
+    z-index: 1;
+    display: block;
+  }
+
+  .draw-btn .btn-count {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .draw-btn .btn-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 3px;
+    opacity: 0.7;
+  }
+
+  /* Results */
+  #results {
+    margin-bottom: 2rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--muted);
+  }
+
+  .empty-state .empty-icon {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 8px;
+    opacity: 0.4;
+  }
+
+  .empty-state p {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Result card */
+  .result-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.25rem 1.25rem 1rem;
+    margin-bottom: 12px;
+    animation: slideIn 0.3s ease forwards;
+    opacity: 0;
+    border-left: 4px solid var(--gold);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    background: radial-gradient(circle at top right, rgba(184,134,11,0.06), transparent 70%);
+    pointer-events: none;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-set-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  .card-key {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    margin-bottom: 14px;
+  }
+
+  .card-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 7px;
+  }
+
+  .card-icon {
+    font-size: 14px;
+    width: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    opacity: 0.5;
+  }
+
+  .card-field {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    min-width: 52px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .card-val {
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+
+  .card-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 12px 0 10px;
+  }
+
+  .card-pattern {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .card-pattern .arrow { color: var(--gold); }
+
+  /* History */
+  .history-section {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+  }
+
+  .history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .history-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .clear-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .clear-btn:hover { color: var(--rust); border-color: var(--rust); }
+
+  .hist-empty {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    padding: 1.25rem 0;
+    opacity: 0.6;
+  }
+
+  .hist-item {
+    border-top: 1px solid var(--border);
+    padding: 10px 0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px;
+    align-items: start;
+  }
+
+  .hist-key {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .hist-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 3px;
+  }
+
+  .hist-detail {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    grid-column: 1 / -1;
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  footer p {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    opacity: 0.6;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 360px) {
+    header h1 { font-size: 22px; }
+    .card-key { font-size: 24px; }
+    .draw-btn .btn-count { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <span class="treble-clef">𝄞</span>
+    <h1>Scale Practice<br>Lottery</h1>
+    <p class="subtitle">24 Keys · Russian Conservatory Technique</p>
+  </header>
+
+  <div class="draw-section">
+    <p class="draw-label">Draw a practice set</p>
+    <div class="btn-grid">
+      <button class="draw-btn" onclick="draw(1)">
+        <span class="btn-count">1</span>
+        <span class="btn-label">set</span>
+      </button>
+      <button class="draw-btn" onclick="draw(3)">
+        <span class="btn-count">3</span>
+        <span class="btn-label">sets</span>
+      </button>
+      <button class="draw-btn" onclick="draw(5)">
+        <span class="btn-count">5</span>
+        <span class="btn-label">sets</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="results">
+    <div class="empty-state">
+      <span class="empty-icon">𝄫</span>
+      <p>Tap a button to draw your practice set</p>
+    </div>
+  </div>
+
+  <div class="history-section">
+    <div class="history-header">
+      <span class="history-title">Today's history</span>
+      <button class="clear-btn" onclick="clearHistory()">Clear</button>
+    </div>
+    <div id="history">
+      <div class="hist-empty">— no draws yet —</div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Ascending → Contrary motion → Descending &nbsp;·&nbsp; 4/4 time</p>
+    <p style="margin-top:6px">80 · 90 · 100 BPM</p>
+  </footer>
+
+</div>
+
+<script>
+const KEYS = [
+  "C major","G major","D major","A major","E major","B major",
+  "F-sharp major","D-flat major","A-flat major","E-flat major","B-flat major","F major",
+  "A minor","E minor","B minor","F-sharp minor","C-sharp minor","G-sharp minor",
+  "E-flat minor","B-flat minor","F minor","C minor","G minor","D minor"
+];
+
+const TOUCHES = [
+  "Full legato","Full staccato","Non-legato","Portato","Finger staccato",
+  "Wrist staccato","Deep key legato","Light shallow touch","Close-to-the-keys touch",
+  "High-finger slow practice","Firm fingertip support","Weight transferred into the fingertip",
+  "Relaxed wrist with supported fingertips","Even tone in both hands",
+  "Right hand projected, left hand softer","Left hand projected, right hand softer",
+  "Thumb passage without accent","No accent on the thumb","Clear 4th and 5th fingers",
+  "Legato in the right hand, staccato in the left","Staccato in the right hand, legato in the left",
+  "One octave piano, one octave mezzo forte, one octave forte",
+  "Crescendo ascending, diminuendo descending","Diminuendo ascending, crescendo descending",
+  "Piano with clear tone","Forte without tension","Pearl-like tone","Singing tone",
+  "Dry articulated tone","Bright tone","Soft tone","Deep tone with relaxed arm weight",
+  "No pedal","Eyes away from the keyboard","Watch the left hand","Watch the right hand",
+  "Stop briefly at each thumb passage","Stop briefly at the highest note","Stop briefly at the lowest note"
+];
+
+const TEMPOS = [80, 90, 100];
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function getHistory() {
+  try {
+    const raw = localStorage.getItem('piano_lottery_v2');
+    if (!raw) return [];
+    const all = JSON.parse(raw);
+    const today = new Date().toDateString();
+    return all.filter(x => new Date(x.t).toDateString() === today);
+  } catch (e) { return []; }
+}
+
+function saveToHistory(items) {
+  try {
+    const raw = localStorage.getItem('piano_lottery_v2');
+    const all = raw ? JSON.parse(raw) : [];
+    const today = new Date().toDateString();
+    const old = all.filter(x => new Date(x.t).toDateString() !== today);
+    localStorage.setItem('piano_lottery_v2', JSON.stringify([...old, ...items]));
+  } catch (e) {}
+}
+
+function clearHistory() {
+  try {
+    const raw = localStorage.getItem('piano_lottery_v2');
+    if (!raw) return;
+    const all = JSON.parse(raw);
+    const today = new Date().toDateString();
+    localStorage.setItem('piano_lottery_v2', JSON.stringify(all.filter(x => new Date(x.t).toDateString() !== today)));
+  } catch (e) {}
+  renderHistory();
+}
+
+function renderHistory() {
+  const hist = getHistory();
+  const el = document.getElementById('history');
+  if (!hist.length) {
+    el.innerHTML = '<div class="hist-empty">— no draws yet —</div>';
+    return;
+  }
+  el.innerHTML = [...hist].reverse().map(x => `
+    <div class="hist-item">
+      <div class="hist-key">${x.key}</div>
+      <div class="hist-time">${fmtTime(x.t)}</div>
+      <div class="hist-detail">${x.touch} &nbsp;·&nbsp; ${x.tempo} BPM</div>
+    </div>
+  `).join('');
+}
+
+function draw(n) {
+  const sets = [];
+  for (let i = 0; i < n; i++) {
+    sets.push({ key: pick(KEYS), touch: pick(TOUCHES), tempo: pick(TEMPOS), t: Date.now() + i });
+  }
+  saveToHistory(sets);
+
+  const el = document.getElementById('results');
+  el.innerHTML = sets.map((s, i) => `
+    <div class="result-card" style="animation-delay:${i * 0.08}s">
+      ${n > 1 ? `<div class="card-set-num">Set ${i + 1} of ${n}</div>` : ''}
+      <div class="card-key">${s.key}</div>
+      <div class="card-row">
+        <span class="card-field">Touch</span>
+        <span class="card-val">${s.touch}</span>
+      </div>
+      <div class="card-row">
+        <span class="card-field">Tempo</span>
+        <span class="card-val">${s.tempo} BPM &nbsp;·&nbsp; 4/4</span>
+      </div>
+      <div class="card-divider"></div>
+      <div class="card-pattern">
+        <span>↑ Ascending</span>
+        <span class="arrow">→</span>
+        <span>Contrary motion</span>
+        <span class="arrow">→</span>
+        <span>↓ Descending</span>
+      </div>
+    </div>
+  `).join('');
+
+  renderHistory();
+}
+
+renderHistory();
+</script>
+</body>
+</html>
