@@ -51,8 +51,11 @@
   .card-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 7px; }
   .card-field { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); min-width: 52px; flex-shrink: 0; margin-top: 2px; }
   .card-val { font-size: 14px; color: var(--ink); line-height: 1.4; }
+  .touch-name { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 5px; }
+  .touch-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
+  .touch-trains { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gold); margin-top: 4px; letter-spacing: 0.03em; }
   .card-divider { height: 1px; background: var(--border); margin: 12px 0 10px; }
-  .card-pattern { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px; }
+  .card-pattern { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .card-pattern .arrow { color: var(--gold); }
   .history-section { border-top: 1px solid var(--border); padding-top: 1.5rem; }
   .history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
@@ -121,46 +124,281 @@
 <script>
 // ── Databases ──────────────────────────────────────────────────────────────
 
-// White key scales (13 total)
 const WHITE_KEYS = [
   "C major","G major","D major","A major","E major","B major","F major",
-  "A minor","E minor","B minor","C minor","G minor","D minor"
+  "A minor","E minor","B minor","C minor","G minor","D minor","F minor"
 ];
 
-// Black key scales (11 total)
 const BLACK_KEYS = [
   "F-sharp major","D-flat major","A-flat major","E-flat major","B-flat major",
-  "F-sharp minor","C-sharp minor","G-sharp minor","E-flat minor","B-flat minor","F minor"
+  "F-sharp minor","C-sharp minor","G-sharp minor","E-flat minor","B-flat minor"
 ];
 
 const TOUCHES = [
-  "Full legato","Full staccato","Non-legato","Portato","Finger staccato",
-  "Wrist staccato","Deep key legato","Light shallow touch","Close-to-the-keys touch",
-  "High-finger slow practice","Firm fingertip support","Weight transferred into the fingertip",
-  "Relaxed wrist with supported fingertips","Even tone in both hands",
-  "Right hand projected, left hand softer","Left hand projected, right hand softer",
-  "Thumb passage without accent","No accent on the thumb","Clear 4th and 5th fingers",
-  "Legato in the right hand, staccato in the left","Staccato in the right hand, legato in the left",
-  "One octave piano, one octave mezzo forte, one octave forte",
-  "Crescendo ascending, diminuendo descending","Diminuendo ascending, crescendo descending",
-  "Piano with clear tone","Forte without tension","Pearl-like tone","Singing tone",
-  "Dry articulated tone","Bright tone","Soft tone","Deep tone with relaxed arm weight",
-  "No pedal","Eyes away from the keyboard","Watch the left hand","Watch the right hand",
-  "Stop briefly at each thumb passage","Stop briefly at the highest note","Stop briefly at the lowest note"
+  {
+    name: "Touch Before Sound",
+    desc: "Place the fingertip on the key before producing the sound. Weight path: arm weight → relaxed wrist → supported fingertip → key bottom.",
+    trains: "Avoiding striking from the air."
+  },
+  {
+    name: "Silent Key Contact",
+    desc: "Touch each key silently first, pause briefly, then play. This prevents flying fingers and rough attacks.",
+    trains: "Preparation before sound."
+  },
+  {
+    name: "Slow Key Descent",
+    desc: "Depress each key very slowly until it reaches the bottom. Do not press forcefully; let the weight sink naturally.",
+    trains: "Sensing key resistance."
+  },
+  {
+    name: "Fast Descent Without Striking",
+    desc: "Enter the key quickly with the fingertip, but do not hit from above. The speed is in the fingertip, not in an arm impact.",
+    trains: "A bright sound without sharpness."
+  },
+  {
+    name: "Shallow Key Descent",
+    desc: "Use very little weight, as if touching the surface of water. Useful for Debussy, quick soft passages, and chromatic scales.",
+    trains: "Light sound with control."
+  },
+  {
+    name: "Deep Key Descent",
+    desc: "Play each note fully to the key bottom while keeping the wrist free. Useful for Beethoven, slow scales, and full tone production.",
+    trains: "Core sound."
+  },
+  {
+    name: "Stay at the Key Bottom",
+    desc: "After playing each note, keep the fingertip at the bottom briefly. This helps prevent an empty or floating sound.",
+    trains: "Not pulling the weight away too quickly."
+  },
+  {
+    name: "Release Tension at the Key Bottom",
+    desc: "Keep the key depressed, but release unnecessary arm tension immediately after sound. Important for long notes, legato, and slow movements.",
+    trains: "Holding a key without stiffness."
+  },
+  {
+    name: "Finger-to-Finger Transfer",
+    desc: "After playing C, feel the weight gradually transfer to the finger playing D. Do not release C first and then search for D; let C pass the weight into D.",
+    trains: "Connection between notes."
+  },
+  {
+    name: "Arm Follows the Scale Direction",
+    desc: "When ascending, let the arm move slightly to the right; when descending, slightly to the left. Do not let the wrist get stuck in one place.",
+    trains: "Matching body direction with musical direction."
+  },
+  {
+    name: "Weight Wave",
+    desc: "Shape every four notes as a small wave: slightly deeper on the first note, released by the fourth. The scale becomes a breathing line, not a row of mechanical notes.",
+    trains: "Phrasing inside scales."
+  },
+  {
+    name: "Two-Note Weight Transfer",
+    desc: "Group notes in pairs: C-D, E-F, G-A. Let the first note receive weight and the second note release it.",
+    trains: "Small-unit weight flow."
+  },
+  {
+    name: "Four-Note Weight Transfer",
+    desc: "Group the scale as C-D-E-F, G-A-B-C. Useful when scales sound note-by-note without a phrase.",
+    trains: "Directional thinking in note groups."
+  },
+  {
+    name: "Prepare the Thumb Before It Plays",
+    desc: "Before the thumb plays, the wrist has already opened a small space for it. Do not wait until the thumb gets stuck and then force it under.",
+    trains: "Transferring weight before thumb passage."
+  },
+  {
+    name: "Release After the Thumb",
+    desc: "After the thumb plays, do not stay heavy on it. Transfer weight immediately to the next finger. Uneven scales often come from a heavy thumb.",
+    trains: "Avoiding thumb accents."
+  },
+  {
+    name: "Seamless Thumb Passage",
+    desc: "At 3-1 or 4-1 crossings, do not allow the sound to become heavier or shorter.",
+    trains: "Changing hand position without exposing it in the sound."
+  },
+  {
+    name: "Horizontal Wrist Motion",
+    desc: "Move the wrist only horizontally from side to side, without vertical bouncing. Useful for legato scales.",
+    trains: "Scale direction and smooth connection."
+  },
+  {
+    name: "Tiny Wrist Rebound",
+    desc: "After each note, allow a very small wrist rebound. Useful for staccato scales.",
+    trains: "Short sound without hardness."
+  },
+  {
+    name: "Still-Wrist Test",
+    desc: "Play with the wrist almost still, using mainly the fingers. After adding wrist freedom again, the sound should feel lighter.",
+    trains: "Awareness of finger overwork."
+  },
+  {
+    name: "Wrist Leads the Fingers",
+    desc: "Think that the wrist carries the fingers across the keyboard, rather than each finger pressing separately.",
+    trains: "Whole-hand flow instead of isolated finger striking."
+  },
+  {
+    name: "Forearm Rotation",
+    desc: "During patterns such as 1-2-3-1, feel a tiny rotation in the forearm. Especially useful for chromatic scales and fast passagework.",
+    trains: "Preventing the fingers from carrying all the effort alone."
+  },
+  {
+    name: "Rotate and Return",
+    desc: "After a small forearm rotation, return to a neutral position.",
+    trains: "Rotation as flexible adjustment, not a fixed tilted hand position."
+  },
+  {
+    name: "Floating Wrist",
+    desc: "Let the wrist feel lightly suspended, not collapsed or heavy.",
+    trains: "Allowing weight into the key without sinking the joints."
+  },
+  {
+    name: "Low-Wrist Key Contact",
+    desc: "Keep the wrist slightly lower and the fingers close to the keys. Useful for slow legato.",
+    trains: "Quiet, connected, close-to-the-key touch."
+  },
+  {
+    name: "High-Wrist Light Touch",
+    desc: "Keep the wrist slightly higher and the fingers lighter. Useful for chromatic scales and Debussy-like textures.",
+    trains: "Transparency, speed, and clean articulation."
+  },
+  {
+    name: "Stable Fingertip",
+    desc: "When each note sounds, let the fingertip feel as if it is standing on the floor. Avoid collapsed fingers or weak sliding contact.",
+    trains: "Fingertip support."
+  },
+  {
+    name: "Supported Knuckles",
+    desc: "Keep the main knuckles lifted and supported while playing the scale. If the knuckles collapse, the sound loses its core.",
+    trains: "Stable hand structure."
+  },
+  {
+    name: "Fingertip Grip",
+    desc: "Let the fingertip lightly grip the key surface without squeezing. Useful for Beethoven and Chopin melodic lines.",
+    trains: "Sound density."
+  },
+  {
+    name: "Fingertip Gliding",
+    desc: "Let the fingertip pass very lightly over the key surface. Useful for Debussy, Ravel, and chromatic scales.",
+    trains: "Transparency, speed, and lightness."
+  },
+  {
+    name: "Flatter-Finger Tone",
+    desc: "Play a slow scale with a slightly flatter finger shape. Do not let the hand collapse.",
+    trains: "Warmer and broader tone."
+  },
+  {
+    name: "Curved-Finger Tone",
+    desc: "Play with a more curved fingertip. Useful for Bach and fast passagework.",
+    trains: "Brighter, clearer, more focused tone."
+  },
+  {
+    name: "Two Fingertip Colors on the Same Scale",
+    desc: "Play the same scale once with a rounded fingertip and once with a flatter fingertip.",
+    trains: "Understanding that the same scale can have different tone colors."
+  },
+  {
+    name: "Very Slow Legato Without Pedal",
+    desc: "Connect every note genuinely to the next. Do not use pedal to hide gaps.",
+    trains: "Real finger and weight connection."
+  },
+  {
+    name: "Delayed Key Release",
+    desc: "Release the previous note only after the next note has sounded. Keep the overlap short and controlled, not blurry.",
+    trains: "Overlapping legato."
+  },
+  {
+    name: "Seamless Thumb-Under Legato",
+    desc: "Play especially slowly at 3-1 and 4-1 crossings.",
+    trains: "Maintaining sound continuity through thumb passage."
+  },
+  {
+    name: "One-Breath Scale",
+    desc: "Think of the whole octave as one breath, not as eight separate notes. The body should know the destination from the first note.",
+    trains: "Long-line phrasing."
+  },
+  {
+    name: "Light Phrase Ending",
+    desc: "Reduce weight gradually over the last two notes of the scale. Very useful for Beethoven phrasing.",
+    trains: "Avoiding rushed or hard endings."
+  },
+  {
+    name: "Touch First, Then Bounce",
+    desc: "Touch the key first, then leave it with a small wrist rebound. This is the 'press first, then jump' feeling.",
+    trains: "Short sound without dryness or striking."
+  },
+  {
+    name: "Rebound from the Key Bottom",
+    desc: "Let the hand rebound from the key after the sound reaches the bottom. The sound becomes short but round.",
+    trains: "Avoiding active pulling away."
+  },
+  {
+    name: "Fingertip Staccato",
+    desc: "Keep the wrist almost still and use quick fingertip release. Useful for fast staccato passages.",
+    trains: "Light and clear small articulation."
+  },
+  {
+    name: "Wrist Staccato",
+    desc: "Keep the fingers stable and use a small wrist bounce.",
+    trains: "Elastic and rounded short notes."
+  },
+  {
+    name: "Forearm Staccato",
+    desc: "Use a little forearm weight moving in and out of the key. Useful for Beethoven and chordal staccato.",
+    trains: "Louder staccato without hardness."
+  },
+  {
+    name: "Short Sound, Continuous Breath",
+    desc: "Even though the sound is short, let the hand direction continue toward the next note. This makes staccato musical rather than dry.",
+    trains: "Separation in sound but continuity in the body."
+  },
+  {
+    name: "pp Without Floating",
+    desc: "Play the scale extremely softly, but make sure each key still reaches the bottom. Do not let the sound become weak or unfocused.",
+    trains: "Soft sound with core."
+  },
+  {
+    name: "ff Without Striking",
+    desc: "Play loudly without breaking the sound. The knuckles stay supported and the wrist remains free.",
+    trains: "Volume through weight transmission, not impact."
+  },
+  {
+    name: "Crescendo Scale",
+    desc: "Play an ascending scale from pp to ff. Do not suddenly force individual notes; let the arm weight deepen progressively.",
+    trains: "Gradually increasing weight."
+  },
+  {
+    name: "Diminuendo Scale",
+    desc: "Play an ascending scale from ff to pp. Many players become weak when getting softer; this prevents that.",
+    trains: "Gradually releasing weight while keeping fingertip control."
+  },
+  {
+    name: "Bright-Tone Scale",
+    desc: "Use faster fingertip entry with less arm weight. Useful for sparkling passages.",
+    trains: "Bright, clear, focused sound."
+  },
+  {
+    name: "Dark-Tone Scale",
+    desc: "Stay close to the keys, enter more slowly, and use deeper weight. Useful for slow movements, Chopin middle sections, and Beethoven inner voices.",
+    trains: "Warmth, depth, and inner tone."
+  },
+  {
+    name: "Three Weight Levels on the Same Scale",
+    desc: "Play the same scale three times: light weight, medium weight, and deep weight. This teaches that sound is not only loud or soft; it also has depth.",
+    trains: "Building a scale of physical weight control."
+  }
 ];
 
 const TEMPOS = [60, 70, 80, 90, 100];
 
 // ── Storage ────────────────────────────────────────────────────────────────
 
-const STORE_KEY = 'piano_lottery_v4';
+const STORE_KEY = 'piano_lottery_v5';
 
 function freshStore() {
   return {
     date: new Date().toDateString(),
-    whiteKeyPool: [...WHITE_KEYS], // exhausts before refilling
-    last5: [],                     // [{key, touch, tempo}] sliding window
-    history: []                    // display log
+    whiteKeyPool: [...WHITE_KEYS],
+    last5: [],
+    history: []
   };
 }
 
@@ -194,47 +432,27 @@ function randFrom(arr) {
 }
 
 // ── Key selection ──────────────────────────────────────────────────────────
-// Rules:
-//   1. White keys: must exhaust pool (all 13) before any can repeat
-//   2. Black keys: always available, 2× weight vs white
-//   3. Cross-draw: key must not appear in last 5 individual draws
-//   4. Within batch: no key repeats
 
 function pickKeys(store, n) {
-  // Collect cross-draw exclusions from last5
   const last5Keys = store.last5.map(x => x.key);
-
-  // We'll build the batch one key at a time
   const batchKeys = [];
 
   for (let i = 0; i < n; i++) {
     const exclude = new Set([...last5Keys, ...batchKeys]);
 
-    // Available white keys: from pool, not excluded
     let availWhite = store.whiteKeyPool.filter(k => !exclude.has(k));
-    // Available black keys: not excluded
     let availBlack = BLACK_KEYS.filter(k => !exclude.has(k));
 
-    // Safety fallback: if white pool has nothing available after exclusion,
-    // allow any white key not in current batch (relax last5 for white)
-    if (availWhite.length === 0) {
-      availWhite = WHITE_KEYS.filter(k => !batchKeys.includes(k));
-    }
-    // Same fallback for black
-    if (availBlack.length === 0) {
-      availBlack = BLACK_KEYS.filter(k => !batchKeys.includes(k));
-    }
+    if (availWhite.length === 0) availWhite = WHITE_KEYS.filter(k => !batchKeys.includes(k));
+    if (availBlack.length === 0) availBlack = BLACK_KEYS.filter(k => !batchKeys.includes(k));
 
-    // Build weighted pool: black = 2×, white = 1×
-    // Each entry: { key, isBlack }
     const pool = [
       ...availWhite.map(k => ({ key: k, isBlack: false })),
       ...availBlack.map(k => ({ key: k, isBlack: true })),
-      ...availBlack.map(k => ({ key: k, isBlack: true })),  // 2× weight
+      ...availBlack.map(k => ({ key: k, isBlack: true })),
     ];
 
     if (pool.length === 0) {
-      // absolute last resort: reset white pool mid-session
       store.whiteKeyPool = [...WHITE_KEYS];
       availWhite = WHITE_KEYS.filter(k => !batchKeys.includes(k));
       pool.push(...availWhite.map(k => ({ key: k, isBlack: false })));
@@ -245,64 +463,47 @@ function pickKeys(store, n) {
     const chosen = randFrom(pool);
     batchKeys.push(chosen.key);
 
-    // Update white key pool if a white key was chosen
     if (!chosen.isBlack) {
       store.whiteKeyPool = store.whiteKeyPool.filter(k => k !== chosen.key);
-      // Refill when exhausted
-      if (store.whiteKeyPool.length === 0) {
-        store.whiteKeyPool = [...WHITE_KEYS];
-      }
+      if (store.whiteKeyPool.length === 0) store.whiteKeyPool = [...WHITE_KEYS];
     }
   }
 
-  // Return array of { key, isBlack }
   return batchKeys.map(k => ({ key: k, isBlack: BLACK_KEYS.includes(k) }));
 }
 
 // ── Touch selection ────────────────────────────────────────────────────────
-// Within batch: no repeats
-// Cross-draw: not in last 5
 
 function pickTouches(store, n) {
-  const last5Touches = store.last5.map(x => x.touch);
+  const last5Names = store.last5.map(x => x.touchName);
   const batch = [];
 
   for (let i = 0; i < n; i++) {
-    const exclude = new Set([...last5Touches, ...batch]);
-    let available = TOUCHES.filter(t => !exclude.has(t));
-    // Fallback: relax cross-draw exclusion
-    if (available.length === 0) available = TOUCHES.filter(t => !batch.includes(t));
+    const exclude = new Set([...last5Names, ...batch]);
+    let available = TOUCHES.filter(t => !exclude.has(t.name));
+    if (available.length === 0) available = TOUCHES.filter(t => !batch.includes(t.name));
     if (available.length === 0) available = [...TOUCHES];
-    batch.push(randFrom(available));
+    const chosen = randFrom(available);
+    batch.push(chosen.name);
   }
-  return batch;
+  return batch.map(name => TOUCHES.find(t => t.name === name));
 }
 
 // ── Tempo selection ────────────────────────────────────────────────────────
-// Draw n: pick n unique tempos from [60,70,80,90,100] (shuffled subset)
-// Draw 5: all 5 tempos, each once
-// Draw 3: any 3 of the 5
-// Draw 1: any 1, but not in last 5
-// Cross-draw: not in last 5
 
 function pickTempos(store, n) {
   const last5Tempos = store.last5.map(x => x.tempo);
 
-  if (n >= 5) {
-    // All 5 tempos, shuffled
-    return shuffle(TEMPOS);
-  }
+  if (n >= 5) return shuffle(TEMPOS);
 
   if (n === 1) {
     const available = TEMPOS.filter(t => !last5Tempos.includes(t));
     return [randFrom(available.length ? available : TEMPOS)];
   }
 
-  // n = 3: pick 3 unique, preferring ones not in last5
   const preferred = shuffle(TEMPOS.filter(t => !last5Tempos.includes(t)));
   const fallback  = shuffle(TEMPOS.filter(t => last5Tempos.includes(t)));
-  const ordered   = [...preferred, ...fallback];
-  return ordered.slice(0, n);
+  return [...preferred, ...fallback].slice(0, n);
 }
 
 // ── Main draw ──────────────────────────────────────────────────────────────
@@ -315,19 +516,19 @@ function draw(n) {
   const tempos  = pickTempos(store, n);
 
   const sets = keyObjs.map((k, i) => ({
-    key:     k.key,
-    isBlack: k.isBlack,
-    touch:   touches[i],
-    tempo:   tempos[i],
-    t:       Date.now() + i
+    key:       k.key,
+    isBlack:   k.isBlack,
+    touchName: touches[i].name,
+    touchDesc: touches[i].desc,
+    touchTrains: touches[i].trains,
+    tempo:     tempos[i],
+    t:         Date.now() + i
   }));
 
-  // Update last5 sliding window (track each individual set)
   sets.forEach(s => {
-    store.last5.push({ key: s.key, touch: s.touch, tempo: s.tempo });
+    store.last5.push({ key: s.key, touchName: s.touchName, tempo: s.tempo });
   });
   store.last5 = store.last5.slice(-5);
-
   store.history.push(...sets);
   saveStore(store);
 
@@ -360,9 +561,13 @@ function renderResults(sets) {
       </div>
       <div class="card-row">
         <span class="card-field">Touch</span>
-        <span class="card-val">${s.touch}</span>
+        <div>
+          <div class="touch-name">${s.touchName}</div>
+          <div class="touch-desc">${s.touchDesc}</div>
+          <div class="touch-trains">Trains: ${s.touchTrains}</div>
+        </div>
       </div>
-      <div class="card-row">
+      <div class="card-row" style="margin-top:8px">
         <span class="card-field">Tempo</span>
         <span class="card-val">${s.tempo} BPM · 4/4</span>
       </div>
@@ -388,7 +593,7 @@ function renderHistory(hist) {
     <div class="hist-item">
       <div class="hist-key">${x.key}</div>
       <div class="hist-time">${new Date(x.t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
-      <div class="hist-detail">${x.touch} · ${x.tempo} BPM</div>
+      <div class="hist-detail">${x.touchName} · ${x.tempo} BPM</div>
     </div>
   `).join('');
 }
